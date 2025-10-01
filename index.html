@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive File Manager - Варіант 95</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .auth-card h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .auth-card p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .auth-input {
+            padding: 14px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .google-signin-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+        }
+
+        .google-signin-btn:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4285f4;
+            font-weight: bold;
+        }
+
+        .container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 3px dashed #4facfe;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .upload-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .upload-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .supported-files {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .supported-files h4 {
+            color: #2e7d32;
+            margin-bottom: 8px;
+        }
+
+        .file-types {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-type-badge {
+            background: linear-gradient(135deg, #81c784 0%, #4fc3f7 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            padding: 14px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .file-input-container {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            padding: 14px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            min-height: 52px;
+        }
+
+        .file-input-display:hover {
+            border-color: #4facfe;
+            background: #f8f9ff;
+        }
+
+        .file-input-hidden {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: fit-content;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 12px 18px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            width: 300px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 20px;
+            background: white;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #e65100;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #00695c;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .files-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .files-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .files-table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 18px;
+            text-align: left;
+            font-weight: 700;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .files-table th:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        }
+
+        .files-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
+        }
+
+        .files-table tr {
+            transition: background 0.3s ease;
+        }
+
+        .files-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .file-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .file-extension-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .file-size {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .file-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #e65100;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #00695c;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #d32f2f;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            max-width: 400px;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8a3 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ffb3ba 0%, #ff9aa2 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #b3d9ff 0%, #7db8ff 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .test-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+        }
+
+        .test-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .test-modal.show {
+            display: flex;
+        }
+
+        .test-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .test-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .test-modal-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal-btn:hover {
+            color: #333;
+        }
+
+        .run-tests-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .run-tests-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .test-results {
+            margin-top: 20px;
+        }
+
+        .test-result {
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .test-result.passed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-result.failed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hidden-column {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .upload-form {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .files-table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Екран авторизації -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-card">
+            <h1>📁 Google Drive Manager</h1>
+            <p>Увійдіть для керування файлами</p>
+            <div class="supported-files">
+                <h4>Підтримувані файли (Варіант 95):</h4>
+                <div class="file-types">
+                    <span class="file-type-badge">⚡ .js JavaScript</span>
+                    <span class="file-type-badge">🖼️ .png Зображення</span>
+                </div>
+            </div>
+            <form class="auth-form" id="authForm">
+                <input type="text" class="auth-input" id="usernameInput" placeholder="Username (admin)" value="admin" required>
+                <input type="password" class="auth-input" id="passwordInput" placeholder="Password (password)" value="password" required>
+                <button type="submit" class="google-signin-btn">
+                    <div class="google-icon">G</div>
+                    Увійти
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Основний інтерфейс -->
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <div class="header-content">
+                <h1>
+                    <span>📁</span>
+                    Мій Google Drive - Варіант 95
+                </h1>
+                <div class="user-info">
+                    <span id="userName">Користувач</span>
+                    <button class="logout-btn" id="signOutBtn">Вийти</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Секція завантаження -->
+            <div class="upload-section" id="uploadZone">
+                <div class="upload-header">
+                    <h2>📤 Завантаження файлів</h2>
+                    <p>Перетягніть файли сюди або оберіть через форму</p>
+                    <div class="supported-files">
+                        <h4>Підтримувані типи:</h4>
+                        <div class="file-types">
+                            <span class="file-type-badge">⚡ .js</span>
+                            <span class="file-type-badge">🖼️ .png</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <form class="upload-form" id="uploadForm">
+                    <div class="form-group">
+                        <label for="uploaderName">Ваше ім'я:</label>
+                        <input type="text" id="uploaderName" class="form-input" placeholder="Введіть ваше ім'я" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Оберіть файли (.js, .png):</label>
+                        <div class="file-input-container">
+                            <input type="file" id="fileInput" class="file-input-hidden" multiple accept=".js,.png">
+                            <div class="file-input-display" id="fileInputDisplay">
+                                <span>📎</span>
+                                <span id="fileInputText">Оберіть .js або .png файли</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="upload-btn" id="uploadBtn">
+                        <span>🚀</span>
+                        Завантажити
+                    </button>
+                </form>
+            </div>
+
+            <!-- Елементи управління -->
+            <div class="controls">
+                <div class="controls-left">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Пошук файлів...">
+                    <div class="filter-controls">
+                        <select class="filter-select" id="fileTypeFilter">
+                            <option value="all">Всі файли</option>
+                            <option value="js,png">Лише .js і .png</option>
+                            <option value="js">Лише .js файли</option>
+                            <option value="png">Лише .png файли</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="sort-controls">
+                    <button class="control-btn btn-primary" id="sortByTypeBtn">
+                        <span>🔤</span>
+                        Сортувати за типом
+                        <span id="sortTypeOrder">↑</span>
+                    </button>
+                    <button class="control-btn btn-success" id="refreshBtn">
+                        <span>🔄</span>
+                        Оновити
+                    </button>
+                </div>
+            </div>
+
+            <!-- Таблиця файлів -->
+            <div class="files-container">
+                <div id="filesContent">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Завантаження файлів...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка тестів -->
+    <button class="test-button" id="testButton">
+        🧪 Unit Tests
+    </button>
+
+    <!-- Модальне вікно тестів -->
+    <div class="test-modal" id="testModal">
+        <div class="test-modal-content">
+            <div class="test-modal-header">
+                <h3>🧪 Unit Tests</h3>
+                <button class="close-modal-btn" id="closeModalBtn">×</button>
+            </div>
+            <button class="run-tests-btn" id="runTestsBtn">Запустити тести</button>
+            <div class="test-results" id="testResults"></div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        class FileManagerCore {
+            constructor() {
+                this.files = [];
+                this.sortAscending = true;
+                this.currentFilter = 'all';
+            }
+
+            addFile(file) {
+                if (!this.validateFile(file)) {
+                    throw new Error('Invalid file type');
+                }
+                this.files.push(file);
+                return true;
+            }
+
+            validateFile(file) {
+                const allowedExtensions = ['.js', '.png'];
+                const extension = this.getFileExtension(file.name);
+                return allowedExtensions.includes(extension);
+            }
+
+            getFileExtension(filename) {
+                return '.' + filename.split('.').pop().toLowerCase();
+            }
+
+            sortFilesByType(ascending = true) {
+                return this.files.sort((a, b) => {
+                    const extA = this.getFileExtension(a.name);
+                    const extB = this.getFileExtension(b.name);
+                    const comparison = extA.localeCompare(extB);
+                    return ascending ? comparison : -comparison;
+                });
+            }
+
+            filterFiles(filterType) {
+                if (filterType === 'all') {
+                    return [...this.files];
+                }
+                
+                const allowedTypes = filterType.split(',').map(type => `.${type}`);
+                return this.files.filter(file => {
+                    const ext = this.getFileExtension(file.name);
+                    return allowedTypes.includes(ext);
+                });
+            }
+
+            deleteFile(fileId) {
+                const index = this.files.findIndex(f => f.id === fileId);
+                if (index === -1) return false;
+                this.files.splice(index, 1);
+                return true;
+            }
+
+            searchFiles(query) {
+                if (!query.trim()) return [...this.files];
+                
+                const lowerQuery = query.toLowerCase();
+                return this.files.filter(file =>
+                    file.name.toLowerCase().includes(lowerQuery) ||
+                    file.uploader.toLowerCase().includes(lowerQuery) ||
+                    this.getFileExtension(file.name).toLowerCase().includes(lowerQuery)
+                );
+            }
+        }
+
+        class FileManagerTests {
+            constructor(fileManager) {
+                this.fileManager = fileManager;
+                this.testResults = [];
+            }
+
+            runAllTests() {
+                this.testResults = [];
+                console.log('Запуск unit-тестів...');
+
+                this.testFileValidation();
+                this.testAddFile();
+                this.testSortByFileType();
+                this.testFileFiltering();
+
+                return this.testResults;
+            }
+
+            testFileValidation() {
+                try {
+                    const validFile = { name: 'test.js', size: 1024 };
+                    const invalidFile = { name: 'test.txt', size: 512 };
+
+                    const isValidJS = this.fileManager.validateFile(validFile);
+                    const isValidTXT = this.fileManager.validateFile(invalidFile);
+
+                    if (isValidJS && !isValidTXT) {
+                        this.addTestResult('testFileValidation', true, 'Валідація файлів працює правильно');
+                    } else {
+                        this.addTestResult('testFileValidation', false, 'Помилка валідації файлів');
+                    }
+                } catch (error) {
+                    this.addTestResult('testFileValidation', false, `Помилка: ${error.message}`);
+                }
+            }
+
+            testAddFile() {
+                try {
+                    const initialCount = this.fileManager.files.length;
+                    const testFile = {
+                        id: Date.now(),
+                        name: 'test.js',
+                        size: 1024,
+                        uploader: 'Tester',
+                        type: 'text/javascript'
+                    };
+
+                    const result = this.fileManager.addFile(testFile);
+                    const newCount = this.fileManager.files.length;
+
+                    if (result && newCount === initialCount + 1) {
+                        this.addTestResult('testAddFile', true, 'Додавання файлу успішне');
+                    } else {
+                        this.addTestResult('testAddFile', false, 'Файл не було додано');
+                    }
+                } catch (error) {
+                    this.addTestResult('testAddFile', false, `Помилка додавання: ${error.message}`);
+                }
+            }
+
+            testSortByFileType() {
+                try {
+                    const testFiles = [
+                        { id: 1, name: 'script.js', type: 'text/javascript' },
+                        { id: 2, name: 'image.png', type: 'image/png' },
+                        { id: 3, name: 'another.js', type: 'text/javascript' },
+                        { id: 4, name: 'photo.png', type: 'image/png' }
+                    ];
+
+                    this.fileManager.files = [...testFiles];
+
+                    const sortedAsc = this.fileManager.sortFilesByType(true);
+                    const firstExtAsc = this.fileManager.getFileExtension(sortedAsc[0].name);
+                    const lastExtAsc = this.fileManager.getFileExtension(sortedAsc[sortedAsc.length - 1].name);
+
+                    const sortedDesc = this.fileManager.sortFilesByType(false);
+                    const firstExtDesc = this.fileManager.getFileExtension(sortedDesc[0].name);
+
+                    if (firstExtAsc === '.js' && lastExtAsc === '.png' && firstExtDesc === '.png') {
+                        this.addTestResult('testSortByFileType', true, 'Сортування за типом файлу працює правильно');
+                    } else {
+                        this.addTestResult('testSortByFileType', false, 'Помилка сортування за типом файлу');
+                    }
+                } catch (error) {
+                    this.addTestResult('testSortByFileType', false, `Помилка сортування: ${error.message}`);
+                }
+            }
+
+            testFileFiltering() {
+                try {
+                    const testFiles = [
+                        { id: 1, name: 'script.js', type: 'text/javascript' },
+                        { id: 2, name: 'image.png', type: 'image/png' },
+                        { id: 3, name: 'document.txt', type: 'text/plain' }
+                    ];
+
+                    this.fileManager.files = [...testFiles];
+
+                    const allFiles = this.fileManager.filterFiles('all');
+                    const jsFiles = this.fileManager.filterFiles('js');
+                    const pngFiles = this.fileManager.filterFiles('png');
+                    const jsPngFiles = this.fileManager.filterFiles('js,png');
+
+                    if (allFiles.length === 3 && 
+                        jsFiles.length === 1 && 
+                        pngFiles.length === 1 && 
+                        jsPngFiles.length === 2) {
+                        this.addTestResult('testFileFiltering', true, 'Фільтрація файлів працює правильно');
+                    } else {
+                        this.addTestResult('testFileFiltering', false, 'Помилка фільтрації файлів');
+                    }
+                } catch (error) {
+                    this.addTestResult('testFileFiltering', false, `Помилка фільтрації: ${error.message}`);
+                }
+            }
+
+            addTestResult(testName, passed, message) {
+                this.testResults.push({
+                    name: testName,
+                    passed: passed,
+                    message: message,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+            }
+        }
+
+        class GoogleDriveManager {
+            constructor() {
+                this.core = new FileManagerCore();
+                this.tests = new FileManagerTests(this.core);
+                this.isSignedIn = false;
+                this.currentUser = null;
+                this.currentFilter = 'all';
+                this.sortAscending = true;
+                
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.bindEvents();
+                    await this.checkServerHealth();
+                } catch (error) {
+                    console.error('Помилка ініціалізації:', error);
+                    this.showNotification('Помилка підключення до сервера', 'error');
+                }
+            }
+
+            async checkServerHealth() {
+                try {
+                    const response = await fetch(`${API_URL}/health`);
+                    const data = await response.json();
+                    console.log('Сервер працює:', data);
+                } catch (error) {
+                    console.error('Сервер недоступний:', error);
+                    this.showNotification('Сервер недоступний! Запустіть: npm start', 'error');
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('testButton').addEventListener('click', () => {
+                    document.getElementById('testModal').classList.add('show');
+                });
+
+                document.getElementById('closeModalBtn').addEventListener('click', () => {
+                    document.getElementById('testModal').classList.remove('show');
+                });
+
+                document.getElementById('testModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'testModal') {
+                        document.getElementById('testModal').classList.remove('show');
+                    }
+                });
+
+                document.getElementById('runTestsBtn').addEventListener('click', () => {
+                    this.runTests();
+                });
+
+                document.getElementById('authForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.handleSignIn();
+                });
+
+                document.getElementById('signOutBtn').addEventListener('click', () => {
+                    this.handleSignOut();
+                });
+
+                const uploadZone = document.getElementById('uploadZone');
+                
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.add('dragover');
+                });
+
+                uploadZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    if (!uploadZone.contains(e.relatedTarget)) {
+                        uploadZone.classList.remove('dragover');
+                    }
+                });
+
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.remove('dragover');
+                    this.handleDroppedFiles(e.dataTransfer.files);
+                });
+
+                document.getElementById('fileInput').addEventListener('change', (e) => {
+                    this.updateFileInputDisplay(e.target.files);
+                });
+
+                document.getElementById('fileInputDisplay').addEventListener('click', () => {
+                    document.getElementById('fileInput').click();
+                });
+
+                document.getElementById('uploadForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleUpload();
+                });
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value);
+                });
+
+                document.getElementById('fileTypeFilter').addEventListener('change', (e) => {
+                    this.currentFilter = e.target.value;
+                    this.renderFiles();
+                });
+
+                document.getElementById('sortByTypeBtn').addEventListener('click', () => {
+                    this.handleSortByType();
+                });
+
+                document.getElementById('refreshBtn').addEventListener('click', () => {
+                    this.loadFiles();
+                });
+            }
+
+            async handleSignIn() {
+                const username = document.getElementById('usernameInput').value;
+                const password = document.getElementById('passwordInput').value;
+
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.currentUser = { username, ...data.user };
+                        this.isSignedIn = true;
+                        
+                        document.getElementById('authContainer').style.display = 'none';
+                        document.getElementById('mainContainer').style.display = 'block';
+                        document.getElementById('userName').textContent = data.user.name;
+                        
+                        this.showNotification(`Ласкаво просимо, ${data.user.name}!`, 'success');
+                        await this.loadFiles();
+                    } else {
+                        this.showNotification('Невірні дані для входу!', 'error');
+                    }
+                } catch (error) {
+                    console.error('Помилка авторизації:', error);
+                    this.showNotification('Помилка підключення до сервера', 'error');
+                }
+            }
+
+            handleSignOut() {
+                this.isSignedIn = false;
+                this.currentUser = null;
+                
+                document.getElementById('authContainer').style.display = 'flex';
+                document.getElementById('mainContainer').style.display = 'none';
+                
+                this.showNotification('Ви вийшли з системи', 'info');
+            }
+
+            updateFileInputDisplay(files) {
+                const display = document.getElementById('fileInputText');
+                if (files.length === 0) {
+                    display.textContent = 'Оберіть .js або .png файли';
+                } else if (files.length === 1) {
+                    display.textContent = files[0].name;
+                } else {
+                    display.textContent = `${files.length} файлів обрано`;
+                }
+            }
+
+            async handleDroppedFiles(files) {
+                const uploaderName = document.getElementById('uploaderName').value.trim();
+                if (!uploaderName) {
+                    this.showNotification('Будь ласка, введіть ваше ім\'я!', 'error');
+                    return;
+                }
+
+                await this.processFiles(Array.from(files), uploaderName);
+            }
+
+            async handleUpload() {
+                const uploaderName = document.getElementById('uploaderName').value.trim();
+                const fileInput = document.getElementById('fileInput');
+                const files = fileInput.files;
+
+                if (!uploaderName) {
+                    this.showNotification('Будь ласка, введіть ваше ім\'я!', 'error');
+                    return;
+                }
+
+                if (files.length === 0) {
+                    this.showNotification('Будь ласка, оберіть файли!', 'error');
+                    return;
+                }
+
+                await this.processFiles(Array.from(files), uploaderName);
+                
+                document.getElementById('uploadForm').reset();
+                this.updateFileInputDisplay([]);
+            }
+
+            async processFiles(files, uploaderName) {
+                const uploadBtn = document.getElementById('uploadBtn');
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<span>⏳</span> Завантаження...';
+
+                let successCount = 0;
+                
+                for (const file of files) {
+                    try {
+                        if (!this.core.validateFile(file)) {
+                            this.showNotification(`Файл ${file.name} має непідтримуваний тип!`, 'error');
+                            continue;
+                        }
+
+                        const fileData = await this.readFile(file);
+                        
+                        const response = await fetch(`${API_URL}/files`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: this.currentUser.username,
+                                name: file.name,
+                                type: file.type || this.getFileType(file.name),
+                                size: file.size,
+                                uploader: uploaderName,
+                                data: fileData
+                            })
+                        });
+
+                        if (response.ok) {
+                            successCount++;
+                        } else {
+                            const error = await response.json();
+                            this.showNotification(`Помилка: ${error.error}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Помилка завантаження:', error);
+                        this.showNotification(`Помилка завантаження ${file.name}`, 'error');
+                    }
+                }
+
+                await this.loadFiles();
+
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<span>🚀</span> Завантажити';
+
+                if (successCount > 0) {
+                    this.showNotification(`Успішно завантажено ${successCount} файл(ів)!`, 'success');
+                }
+            }
+
+            readFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    
+                    if (file.type.startsWith('image/')) {
+                        reader.readAsDataURL(file);
+                    } else {
+                        reader.readAsText(file);
+                    }
+                });
+            }
+
+            getFileType(filename) {
+                const ext = filename.split('.').pop().toLowerCase();
+                const typeMap = {
+                    'js': 'text/javascript',
+                    'png': 'image/png'
+                };
+                return typeMap[ext] || 'application/octet-stream';
+            }
+
+            handleSearch(query) {
+                const searchResults = this.core.searchFiles(query);
+                this.renderFiles(searchResults);
+            }
+
+            handleSortByType() {
+                this.sortAscending = !this.sortAscending;
+                document.getElementById('sortTypeOrder').textContent = this.sortAscending ? '↑' : '↓';
+                
+                this.core.sortFilesByType(this.sortAscending);
+                this.renderFiles();
+                
+                this.showNotification(`Файли відсортовано за типом ${this.sortAscending ? '(А-Я)' : '(Я-А)'}`, 'info');
+            }
+
+            async loadFiles() {
+                if (!this.currentUser) return;
+
+                document.getElementById('filesContent').innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Завантаження файлів...</p>
+                    </div>
+                `;
+
+                try {
+                    const response = await fetch(`${API_URL}/files?userId=${this.currentUser.username}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.core.files = data.files.map(file => ({
+                            ...file,
+                            createdDate: new Date(file.createdDate),
+                            modifiedDate: new Date(file.modifiedDate)
+                        }));
+                        this.renderFiles();
+                    }
+                } catch (error) {
+                    console.error('Помилка завантаження файлів:', error);
+                    this.showNotification('Помилка завантаження файлів', 'error');
+                }
+            }
+
+            renderFiles(customFiles = null) {
+                const container = document.getElementById('filesContent');
+                
+                let files = customFiles || this.core.filterFiles(this.currentFilter);
+
+                if (files.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📂 Немає файлів</h3>
+                            <p>Завантажте .js або .png файли через форму вище!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tableHTML = this.generateFilesTable(files);
+                container.innerHTML = tableHTML;
+            }
+
+            generateFilesTable(files) {
+                return `
+                    <table class="files-table">
+                        <thead>
+                            <tr>
+                                <th>Назва файлу</th>
+                                <th>Тип файлу</th>
+                                <th>Розмір</th>
+                                <th>Завантажив</th>
+                                <th>Дата створення</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${files.map(file => this.generateFileRow(file)).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            generateFileRow(file) {
+                return `
+                    <tr>
+                        <td>
+                            <div class="file-name-cell">
+                                <div class="file-icon">${this.getFileIcon(file.name)}</div>
+                                <span title="${this.escapeHtml(file.name)}">${this.escapeHtml(file.name)}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="file-extension-badge">${this.getFileExtension(file.name).substring(1).toUpperCase()}</span>
+                        </td>
+                        <td>
+                            <span class="file-size">${this.formatFileSize(file.size)}</span>
+                        </td>
+                        <td>${this.escapeHtml(file.uploader)}</td>
+                        <td>
+                            <span class="file-date">${this.formatDate(file.createdDate)}</span>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="action-btn btn-view" onclick="fileManager.previewFile('${file.id}')" title="Переглянути">
+                                    <span>👁️</span>
+                                </button>
+                                <button class="action-btn btn-download" onclick="fileManager.downloadFile('${file.id}')" title="Завантажити">
+                                    <span>💾</span>
+                                </button>
+                                <button class="action-btn btn-delete" onclick="fileManager.deleteFile('${file.id}')" title="Видалити">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            runTests() {
+                const results = this.tests.runAllTests();
+                const testResultsContainer = document.getElementById('testResults');
+                
+                let html = '';
+                results.forEach(result => {
+                    html += `
+                        <div class="test-result ${result.passed ? 'passed' : 'failed'}">
+                            <strong>${result.passed ? '✅' : '❌'} ${result.name}</strong><br>
+                            ${result.message}<br>
+                            <small>${result.timestamp}</small>
+                        </div>
+                    `;
+                });
+                
+                testResultsContainer.innerHTML = html;
+                
+                const passedCount = results.filter(r => r.passed).length;
+                const totalCount = results.length;
+                
+                this.showNotification(
+                    `Тести завершено: ${passedCount}/${totalCount} пройдено`, 
+                    passedCount === totalCount ? 'success' : 'error'
+                );
+            }
+
+            previewFile(fileId) {
+                const file = this.core.files.find(f => f.id === fileId);
+                if (!file) return;
+
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+                    align-items: center; z-index: 3000;
+                `;
+
+                const content = document.createElement('div');
+                content.style.cssText = `
+                    background: white; padding: 30px; border-radius: 15px;
+                    max-width: 90%; max-height: 90%; overflow: auto; position: relative;
+                `;
+
+                const closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '×';
+                closeBtn.style.cssText = `
+                    position: absolute; top: 15px; right: 20px; background: none;
+                    border: none; font-size: 2rem; cursor: pointer; color: #666;
+                `;
+
+                let previewHTML = `<h3 style="margin-bottom: 20px;">${this.getFileIcon(file.name)} ${this.escapeHtml(file.name)}</h3>`;
+
+                if (file.type === 'image/png' || file.type.startsWith('image/')) {
+                    previewHTML += `
+                        <div style="text-align: center; margin: 20px 0;">
+                            <img src="${file.data}" alt="${file.name}" style="max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        </div>
+                    `;
+                } else {
+                    previewHTML += `
+                        <div style="margin: 20px 0;">
+                            <pre style="background: #f8f9fa; padding: 20px; border-radius: 8px; max-height: 60vh; overflow: auto; white-space: pre-wrap; font-family: 'Monaco', monospace; font-size: 0.9rem;">${this.escapeHtml(file.data)}</pre>
+                        </div>
+                    `;
+                }
+
+                previewHTML += `
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; color: #666;">
+                        <p><strong>Тип:</strong> ${file.type}</p>
+                        <p><strong>Розмір:</strong> ${this.formatFileSize(file.size)}</p>
+                        <p><strong>Завантажив:</strong> ${this.escapeHtml(file.uploader)}</p>
+                    </div>
+                `;
+
+                content.innerHTML = previewHTML;
+                content.appendChild(closeBtn);
+                modal.appendChild(content);
+                document.body.appendChild(modal);
+
+                closeBtn.addEventListener('click', () => document.body.removeChild(modal));
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) document.body.removeChild(modal);
+                });
+            }
+
+            downloadFile(fileId) {
+                const file = this.core.files.find(f => f.id === fileId);
+                if (!file) return;
+
+                let blob;
+                if (file.type.startsWith('image/')) {
+                    blob = this.dataURLtoBlob(file.data);
+                } else {
+                    blob = new Blob([file.data], { type: file.type || 'text/plain' });
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                this.showNotification(`Файл "${file.name}" завантажується!`, 'success');
+            }
+
+            async deleteFile(fileId) {
+                const file = this.core.files.find(f => f.id === fileId);
+                if (!file) return;
+
+                if (confirm(`Ви впевнені, що хочете видалити файл "${file.name}"?`)) {
+                    try {
+                        const response = await fetch(`${API_URL}/files/${fileId}?userId=${this.currentUser.username}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            await this.loadFiles();
+                            this.showNotification(`Файл "${file.name}" видалено!`, 'success');
+                        } else {
+                            this.showNotification('Помилка видалення файлу', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Помилка видалення:', error);
+                        this.showNotification('Помилка видалення файлу', 'error');
+                    }
+                }
+            }
+
+            getFileIcon(filename) {
+                const ext = this.getFileExtension(filename);
+                const icons = {
+                    '.js': '⚡',
+                    '.png': '🖼️'
+                };
+                return icons[ext] || '📄';
+            }
+
+            getFileExtension(filename) {
+                return '.' + filename.split('.').pop().toLowerCase();
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Б';
+                const k = 1024;
+                const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            formatDate(date) {
+                if (!date) return '';
+                const d = new Date(date);
+                return d.toLocaleString('uk-UA', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            dataURLtoBlob(dataURL) {
+                const arr = dataURL.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new Blob([u8arr], { type: mime });
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        let fileManager;
+        window.addEventListener('DOMContentLoaded', () => {
+            fileManager = new GoogleDriveManager();
+            window.fileManager = fileManager;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs').promises;
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+const DB_FILE = path.join(__dirname, 'db.json');
+
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.static('public'));
+
+// Головна сторінка - віддає index1.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+async function initDB() {
+    try {
+        await fs.access(DB_FILE);
+    } catch {
+        await fs.writeFile(DB_FILE, JSON.stringify({ users: {}, files: [] }));
+    }
+}
+
+async function readDB() {
+    const data = await fs.readFile(DB_FILE, 'utf8');
+    return JSON.parse(data);
+}
+
+async function writeDB(data) {
+    await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2));
+}
+
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { username, password } = req.body;
+    if (username === 'admin' && password === 'password') {
+        const db = await readDB();
+        if (!db.users[username]) {
+            db.users[username] = { name: 'Valeria User', email: 'valeria@example.com' };
+            await writeDB(db);
+        }
+        res.json({ success: true, user: db.users[username] });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+});
+
+app.get('/api/files', async (req, res) => {
+    const { userId } = req.query;
+    const db = await readDB();
+    const files = db.files.filter(f => f.userId === userId);
+    res.json({ success: true, files });
+});
+
+app.post('/api/files', async (req, res) => {
+    const { userId, name, type, size, uploader, data } = req.body;
+    const ext = '.' + name.split('.').pop().toLowerCase();
+    if (!['.js', '.png'].includes(ext)) {
+        return res.status(400).json({ error: 'Only .js and .png files allowed' });
+    }
+    const db = await readDB();
+    const newFile = {
+        id: `file_${Date.now()}`,
+        userId, name, type, size, uploader, data,
+        createdDate: new Date().toISOString(),
+        modifiedDate: new Date().toISOString(),
+        modifiedBy: uploader
+    };
+    db.files.push(newFile);
+    await writeDB(db);
+    res.status(201).json({ success: true, file: newFile });
+});
+
+app.delete('/api/files/:id', async (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.query;
+    const db = await readDB();
+    const index = db.files.findIndex(f => f.id === id && f.userId === userId);
+    if (index === -1) return res.status(404).json({ error: 'File not found' });
+    db.files.splice(index, 1);
+    await writeDB(db);
+    res.json({ success: true });
+});
+
+async function start() {
+    await initDB();
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`API: http://localhost:${PORT}/api/health`);
+    });
+}
+
+start();
