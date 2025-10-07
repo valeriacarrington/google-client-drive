@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Drive File Manager - Варіант 95</title>
+    <title>Google Drive File Manager - Покращена Синхронізація</title>
     <style>
         * {
             margin: 0;
@@ -375,13 +375,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            color: #e65100;
+        .btn-sync {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
         }
 
         .btn-success {
@@ -472,6 +472,29 @@
         .file-date {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        .sync-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sync-badge.synced {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #00695c;
+        }
+
+        .sync-badge.local {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #e65100;
+        }
+
+        .sync-badge.remote {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #d32f2f;
         }
 
         .actions-cell {
@@ -582,32 +605,7 @@
             border-left: 4px solid #17a2b8;
         }
 
-        .test-button {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .test-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
-        }
-
-        .test-modal {
+        .sync-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -621,22 +619,22 @@
             padding: 20px;
         }
 
-        .test-modal.show {
+        .sync-modal.show {
             display: flex;
         }
 
-        .test-modal-content {
+        .sync-modal-content {
             background: white;
             padding: 30px;
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        .test-modal-header {
+        .sync-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -645,7 +643,7 @@
             border-bottom: 2px solid #e1e5e9;
         }
 
-        .test-modal-header h3 {
+        .sync-modal-header h3 {
             font-size: 1.5rem;
             color: #333;
             display: flex;
@@ -671,7 +669,7 @@
             color: #333;
         }
 
-        .run-tests-btn {
+        .sync-now-btn {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             border: none;
@@ -685,16 +683,21 @@
             margin-bottom: 20px;
         }
 
-        .run-tests-btn:hover {
+        .sync-now-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
-        .test-results {
+        .sync-now-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .sync-results {
             margin-top: 20px;
         }
 
-        .test-result {
+        .sync-item {
             padding: 12px 16px;
             margin: 10px 0;
             border-radius: 10px;
@@ -702,20 +705,72 @@
             font-weight: 500;
         }
 
-        .test-result.passed {
+        .sync-item.uploading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .sync-item.downloading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .sync-item.completed {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
 
-        .test-result.failed {
+        .sync-item.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
 
-        .hidden-column {
-            display: none;
+        .sync-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sync-stat {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .sync-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .sync-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .sync-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sync-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .sync-detail-item:last-child {
+            border-bottom: none;
         }
 
         @media (max-width: 768px) {
@@ -736,17 +791,20 @@
             .files-table {
                 font-size: 0.9rem;
             }
+
+            .sync-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Екран авторизації -->
     <div class="auth-container" id="authContainer">
         <div class="auth-card">
             <h1>📁 Google Drive Manager</h1>
             <p>Увійдіть для керування файлами</p>
             <div class="supported-files">
-                <h4>Підтримувані файли (Варіант 95):</h4>
+                <h4>Підтримувані файли:</h4>
                 <div class="file-types">
                     <span class="file-type-badge">⚡ .js JavaScript</span>
                     <span class="file-type-badge">🖼️ .png Зображення</span>
@@ -763,13 +821,12 @@
         </div>
     </div>
 
-    <!-- Основний інтерфейс -->
     <div class="container" id="mainContainer">
         <div class="header">
             <div class="header-content">
                 <h1>
                     <span>📁</span>
-                    Мій Google Drive - Варіант 95
+                    Мій Google Drive - Синхронізація
                 </h1>
                 <div class="user-info">
                     <span id="userName">Користувач</span>
@@ -779,7 +836,6 @@
         </div>
 
         <div class="main-content">
-            <!-- Секція завантаження -->
             <div class="upload-section" id="uploadZone">
                 <div class="upload-header">
                     <h2>📤 Завантаження файлів</h2>
@@ -817,7 +873,6 @@
                 </form>
             </div>
 
-            <!-- Елементи управління -->
             <div class="controls">
                 <div class="controls-left">
                     <input type="text" class="search-input" id="searchInput" placeholder="🔍 Пошук файлів...">
@@ -836,6 +891,10 @@
                         Сортувати за типом
                         <span id="sortTypeOrder">↑</span>
                     </button>
+                    <button class="control-btn btn-sync" id="syncBtn">
+                        <span>🔄</span>
+                        Синхронізація
+                    </button>
                     <button class="control-btn btn-success" id="refreshBtn">
                         <span>🔄</span>
                         Оновити
@@ -843,7 +902,6 @@
                 </div>
             </div>
 
-            <!-- Таблиця файлів -->
             <div class="files-container">
                 <div id="filesContent">
                     <div class="loading">
@@ -855,20 +913,36 @@
         </div>
     </div>
 
-    <!-- Кнопка тестів -->
-    <button class="test-button" id="testButton">
-        🧪 Unit Tests
-    </button>
-
-    <!-- Модальне вікно тестів -->
-    <div class="test-modal" id="testModal">
-        <div class="test-modal-content">
-            <div class="test-modal-header">
-                <h3>🧪 Unit Tests</h3>
-                <button class="close-modal-btn" id="closeModalBtn">×</button>
+    <div class="sync-modal" id="syncModal">
+        <div class="sync-modal-content">
+            <div class="sync-modal-header">
+                <h3>🔄 Синхронізація файлів</h3>
+                <button class="close-modal-btn" id="closeSyncModalBtn">×</button>
             </div>
-            <button class="run-tests-btn" id="runTestsBtn">Запустити тести</button>
-            <div class="test-results" id="testResults"></div>
+            
+            <div class="sync-stats">
+                <div class="sync-stat">
+                    <div class="sync-stat-value" id="localCount">0</div>
+                    <div class="sync-stat-label">Локальних</div>
+                </div>
+                <div class="sync-stat">
+                    <div class="sync-stat-value" id="remoteCount">0</div>
+                    <div class="sync-stat-label">Віддалених</div>
+                </div>
+                <div class="sync-stat">
+                    <div class="sync-stat-value" id="toUploadCount">0</div>
+                    <div class="sync-stat-label">До завантаження</div>
+                </div>
+                <div class="sync-stat">
+                    <div class="sync-stat-value" id="toDownloadCount">0</div>
+                    <div class="sync-stat-label">До отримання</div>
+                </div>
+            </div>
+
+            <div class="sync-details" id="syncDetails"></div>
+
+            <button class="sync-now-btn" id="syncNowBtn">🔄 Запустити синхронізацію</button>
+            <div class="sync-results" id="syncResults"></div>
         </div>
     </div>
 
@@ -876,6 +950,54 @@
 
     <script>
         const API_URL = 'http://localhost:3000/api';
+        const LOCAL_STORAGE_KEY = 'gdrive_files_sync_v2';
+
+        class LocalStorage {
+            static saveFiles(userId, files) {
+                const data = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+                data[userId] = files.map(f => ({
+                    ...f,
+                    syncStatus: f.syncStatus || 'local',
+                    lastModified: f.lastModified || new Date().toISOString()
+                }));
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            static getFiles(userId) {
+                const data = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+                return data[userId] || [];
+            }
+
+            static clearFiles(userId) {
+                const data = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '{}');
+                delete data[userId];
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            static updateFile(userId, fileId, updates) {
+                const files = this.getFiles(userId);
+                const index = files.findIndex(f => f.id === fileId);
+                if (index !== -1) {
+                    files[index] = { ...files[index], ...updates, lastModified: new Date().toISOString() };
+                    this.saveFiles(userId, files);
+                    return true;
+                }
+                return false;
+            }
+
+            static deleteFile(userId, fileId) {
+                const files = this.getFiles(userId);
+                const filtered = files.filter(f => f.id !== fileId);
+                this.saveFiles(userId, filtered);
+                return true;
+            }
+
+            static addFile(userId, file) {
+                const files = this.getFiles(userId);
+                files.push({ ...file, lastModified: new Date().toISOString() });
+                this.saveFiles(userId, files);
+            }
+        }
 
         class FileManagerCore {
             constructor() {
@@ -942,136 +1064,165 @@
             }
         }
 
-        class FileManagerTests {
-            constructor(fileManager) {
-                this.fileManager = fileManager;
-                this.testResults = [];
+        class SyncManager {
+            constructor(userId) {
+                this.userId = userId;
+                this.syncQueue = [];
             }
 
-            runAllTests() {
-                this.testResults = [];
-                console.log('Запуск unit-тестів...');
+            async compareFiles(localFiles, remoteFiles) {
+                const comparison = {
+                    toUpload: [],
+                    toDownload: [],
+                    synced: [],
+                    conflicts: []
+                };
 
-                this.testFileValidation();
-                this.testAddFile();
-                this.testSortByFileType();
-                this.testFileFiltering();
+                const remoteMap = new Map(remoteFiles.map(f => [f.id, f]));
+                const localMap = new Map(localFiles.map(f => [f.id, f]));
 
-                return this.testResults;
-            }
-
-            testFileValidation() {
-                try {
-                    const validFile = { name: 'test.js', size: 1024 };
-                    const invalidFile = { name: 'test.txt', size: 512 };
-
-                    const isValidJS = this.fileManager.validateFile(validFile);
-                    const isValidTXT = this.fileManager.validateFile(invalidFile);
-
-                    if (isValidJS && !isValidTXT) {
-                        this.addTestResult('testFileValidation', true, 'Валідація файлів працює правильно');
+                // Перевіряємо локальні файли
+                for (const localFile of localFiles) {
+                    const remoteFile = remoteMap.get(localFile.id);
+                    
+                    if (!remoteFile) {
+                        // Файл є тільки локально - треба завантажити на сервер
+                        comparison.toUpload.push(localFile);
                     } else {
-                        this.addTestResult('testFileValidation', false, 'Помилка валідації файлів');
+                        // Файл є і локально, і на сервері
+                        const localDate = new Date(localFile.lastModified || localFile.createdDate);
+                        const remoteDate = new Date(remoteFile.modifiedDate || remoteFile.createdDate);
+                        
+                        if (Math.abs(localDate - remoteDate) < 1000) {
+                            // Файли синхронізовані (різниця менше 1 секунди)
+                            comparison.synced.push(localFile);
+                        } else if (localDate > remoteDate) {
+                            // Локальна версія новіша - конфлікт або оновлення
+                            comparison.conflicts.push({ local: localFile, remote: remoteFile, action: 'upload' });
+                        } else {
+                            // Віддалена версія новіша - треба завантажити
+                            comparison.toDownload.push(remoteFile);
+                        }
                     }
-                } catch (error) {
-                    this.addTestResult('testFileValidation', false, `Помилка: ${error.message}`);
                 }
+
+                // Перевіряємо віддалені файли, яких немає локально
+                for (const remoteFile of remoteFiles) {
+                    if (!localMap.has(remoteFile.id)) {
+                        comparison.toDownload.push(remoteFile);
+                    }
+                }
+
+                return comparison;
             }
 
-            testAddFile() {
-                try {
-                    const initialCount = this.fileManager.files.length;
-                    const testFile = {
-                        id: Date.now(),
-                        name: 'test.js',
-                        size: 1024,
-                        uploader: 'Tester',
-                        type: 'text/javascript'
-                    };
+            async syncFiles(localFiles, remoteFiles, onProgress) {
+                const comparison = await this.compareFiles(localFiles, remoteFiles);
+                const results = [];
 
-                    const result = this.fileManager.addFile(testFile);
-                    const newCount = this.fileManager.files.length;
+                // Завантажуємо локальні файли на сервер
+                for (const file of comparison.toUpload) {
+                    try {
+                        onProgress({ type: 'uploading', file: file.name });
+                        
+                        const response = await fetch(`${API_URL}/files`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: this.userId,
+                                id: file.id,
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                uploader: file.uploader,
+                                data: file.data
+                            })
+                        });
 
-                    if (result && newCount === initialCount + 1) {
-                        this.addTestResult('testAddFile', true, 'Додавання файлу успішне');
-                    } else {
-                        this.addTestResult('testAddFile', false, 'Файл не було додано');
+                        if (response.ok) {
+                            LocalStorage.updateFile(this.userId, file.id, { syncStatus: 'synced' });
+                            results.push({ success: true, action: 'upload', file: file.name });
+                        } else {
+                            results.push({ success: false, action: 'upload', file: file.name, error: 'Server error' });
+                        }
+                    } catch (error) {
+                        results.push({ success: false, action: 'upload', file: file.name, error: error.message });
                     }
-                } catch (error) {
-                    this.addTestResult('testAddFile', false, `Помилка додавання: ${error.message}`);
                 }
-            }
 
-            testSortByFileType() {
-                try {
-                    const testFiles = [
-                        { id: 1, name: 'script.js', type: 'text/javascript' },
-                        { id: 2, name: 'image.png', type: 'image/png' },
-                        { id: 3, name: 'another.js', type: 'text/javascript' },
-                        { id: 4, name: 'photo.png', type: 'image/png' }
-                    ];
-
-                    this.fileManager.files = [...testFiles];
-
-                    const sortedAsc = this.fileManager.sortFilesByType(true);
-                    const firstExtAsc = this.fileManager.getFileExtension(sortedAsc[0].name);
-                    const lastExtAsc = this.fileManager.getFileExtension(sortedAsc[sortedAsc.length - 1].name);
-
-                    const sortedDesc = this.fileManager.sortFilesByType(false);
-                    const firstExtDesc = this.fileManager.getFileExtension(sortedDesc[0].name);
-
-                    if (firstExtAsc === '.js' && lastExtAsc === '.png' && firstExtDesc === '.png') {
-                        this.addTestResult('testSortByFileType', true, 'Сортування за типом файлу працює правильно');
-                    } else {
-                        this.addTestResult('testSortByFileType', false, 'Помилка сортування за типом файлу');
+                // Завантажуємо файли з сервера локально
+                for (const file of comparison.toDownload) {
+                    try {
+                        onProgress({ type: 'downloading', file: file.name });
+                        
+                        // Отримуємо повні дані файлу з сервера
+                        const response = await fetch(`${API_URL}/files/${file.id}?userId=${this.userId}`);
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            const fullFile = result.file;
+                            
+                            const localFiles = LocalStorage.getFiles(this.userId);
+                            const existingIndex = localFiles.findIndex(f => f.id === fullFile.id);
+                            
+                            const fileToSave = {
+                                ...fullFile,
+                                syncStatus: 'synced',
+                                lastModified: fullFile.modifiedDate || fullFile.createdDate
+                            };
+                            
+                            if (existingIndex !== -1) {
+                                localFiles[existingIndex] = fileToSave;
+                            } else {
+                                localFiles.push(fileToSave);
+                            }
+                            
+                            LocalStorage.saveFiles(this.userId, localFiles);
+                            results.push({ success: true, action: 'download', file: file.name });
+                        } else {
+                            results.push({ success: false, action: 'download', file: file.name, error: 'Server error' });
+                        }
+                    } catch (error) {
+                        results.push({ success: false, action: 'download', file: file.name, error: error.message });
                     }
-                } catch (error) {
-                    this.addTestResult('testSortByFileType', false, `Помилка сортування: ${error.message}`);
                 }
-            }
 
-            testFileFiltering() {
-                try {
-                    const testFiles = [
-                        { id: 1, name: 'script.js', type: 'text/javascript' },
-                        { id: 2, name: 'image.png', type: 'image/png' },
-                        { id: 3, name: 'document.txt', type: 'text/plain' }
-                    ];
+                // Обробляємо конфлікти (поки що просто завантажуємо на сервер)
+                for (const conflict of comparison.conflicts) {
+                    try {
+                        onProgress({ type: 'uploading', file: conflict.local.name + ' (оновлення)' });
+                        
+                        const response = await fetch(`${API_URL}/files`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: this.userId,
+                                id: conflict.local.id,
+                                name: conflict.local.name,
+                                type: conflict.local.type,
+                                size: conflict.local.size,
+                                uploader: conflict.local.uploader,
+                                data: conflict.local.data
+                            })
+                        });
 
-                    this.fileManager.files = [...testFiles];
-
-                    const allFiles = this.fileManager.filterFiles('all');
-                    const jsFiles = this.fileManager.filterFiles('js');
-                    const pngFiles = this.fileManager.filterFiles('png');
-                    const jsPngFiles = this.fileManager.filterFiles('js,png');
-
-                    if (allFiles.length === 3 && 
-                        jsFiles.length === 1 && 
-                        pngFiles.length === 1 && 
-                        jsPngFiles.length === 2) {
-                        this.addTestResult('testFileFiltering', true, 'Фільтрація файлів працює правильно');
-                    } else {
-                        this.addTestResult('testFileFiltering', false, 'Помилка фільтрації файлів');
+                        if (response.ok) {
+                            LocalStorage.updateFile(this.userId, conflict.local.id, { syncStatus: 'synced' });
+                            results.push({ success: true, action: 'conflict-resolve', file: conflict.local.name });
+                        }
+                    } catch (error) {
+                        results.push({ success: false, action: 'conflict-resolve', file: conflict.local.name, error: error.message });
                     }
-                } catch (error) {
-                    this.addTestResult('testFileFiltering', false, `Помилка фільтрації: ${error.message}`);
                 }
-            }
 
-            addTestResult(testName, passed, message) {
-                this.testResults.push({
-                    name: testName,
-                    passed: passed,
-                    message: message,
-                    timestamp: new Date().toLocaleTimeString()
-                });
+                return results;
             }
         }
 
         class GoogleDriveManager {
             constructor() {
                 this.core = new FileManagerCore();
-                this.tests = new FileManagerTests(this.core);
+                this.syncManager = null;
                 this.isSignedIn = false;
                 this.currentUser = null;
                 this.currentFilter = 'all';
@@ -1102,22 +1253,22 @@
             }
 
             bindEvents() {
-                document.getElementById('testButton').addEventListener('click', () => {
-                    document.getElementById('testModal').classList.add('show');
+                document.getElementById('closeSyncModalBtn').addEventListener('click', () => {
+                    document.getElementById('syncModal').classList.remove('show');
                 });
 
-                document.getElementById('closeModalBtn').addEventListener('click', () => {
-                    document.getElementById('testModal').classList.remove('show');
-                });
-
-                document.getElementById('testModal').addEventListener('click', (e) => {
-                    if (e.target.id === 'testModal') {
-                        document.getElementById('testModal').classList.remove('show');
+                document.getElementById('syncModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'syncModal') {
+                        document.getElementById('syncModal').classList.remove('show');
                     }
                 });
 
-                document.getElementById('runTestsBtn').addEventListener('click', () => {
-                    this.runTests();
+                document.getElementById('syncBtn').addEventListener('click', () => {
+                    this.showSyncModal();
+                });
+
+                document.getElementById('syncNowBtn').addEventListener('click', () => {
+                    this.performSync();
                 });
 
                 document.getElementById('authForm').addEventListener('submit', async (e) => {
@@ -1195,6 +1346,7 @@
                         const data = await response.json();
                         this.currentUser = { username, ...data.user };
                         this.isSignedIn = true;
+                        this.syncManager = new SyncManager(username);
                         
                         document.getElementById('authContainer').style.display = 'none';
                         document.getElementById('mainContainer').style.display = 'block';
@@ -1214,11 +1366,112 @@
             handleSignOut() {
                 this.isSignedIn = false;
                 this.currentUser = null;
+                this.syncManager = null;
                 
                 document.getElementById('authContainer').style.display = 'flex';
                 document.getElementById('mainContainer').style.display = 'none';
                 
                 this.showNotification('Ви вийшли з системи', 'info');
+            }
+
+            async showSyncModal() {
+                const modal = document.getElementById('syncModal');
+                modal.classList.add('show');
+
+                const localFiles = LocalStorage.getFiles(this.currentUser.username);
+                const remoteFiles = await this.fetchRemoteFiles();
+
+                document.getElementById('localCount').textContent = localFiles.length;
+                document.getElementById('remoteCount').textContent = remoteFiles.length;
+
+                const comparison = await this.syncManager.compareFiles(localFiles, remoteFiles);
+                document.getElementById('toUploadCount').textContent = comparison.toUpload.length;
+                document.getElementById('toDownloadCount').textContent = comparison.toDownload.length;
+
+                const detailsDiv = document.getElementById('syncDetails');
+                let detailsHTML = '';
+
+                if (comparison.toUpload.length > 0) {
+                    detailsHTML += '<div class="sync-detail-item"><strong>До завантаження на сервер:</strong><span>' + comparison.toUpload.length + ' файл(ів)</span></div>';
+                }
+                if (comparison.toDownload.length > 0) {
+                    detailsHTML += '<div class="sync-detail-item"><strong>До завантаження локально:</strong><span>' + comparison.toDownload.length + ' файл(ів)</span></div>';
+                }
+                if (comparison.conflicts.length > 0) {
+                    detailsHTML += '<div class="sync-detail-item"><strong>⚠️ Конфліктів:</strong><span>' + comparison.conflicts.length + ' файл(ів)</span></div>';
+                }
+                if (comparison.synced.length > 0) {
+                    detailsHTML += '<div class="sync-detail-item"><strong>✓ Синхронізовано:</strong><span>' + comparison.synced.length + ' файл(ів)</span></div>';
+                }
+
+                if (detailsHTML === '') {
+                    detailsHTML = '<div class="sync-detail-item"><strong>✓ Всі файли синхронізовані</strong></div>';
+                }
+
+                detailsDiv.innerHTML = detailsHTML;
+            }
+
+            async performSync() {
+                const btn = document.getElementById('syncNowBtn');
+                btn.disabled = true;
+                btn.textContent = '⏳ Синхронізація...';
+
+                const resultsDiv = document.getElementById('syncResults');
+                resultsDiv.innerHTML = '';
+
+                const localFiles = LocalStorage.getFiles(this.currentUser.username);
+                const remoteFiles = await this.fetchRemoteFiles();
+
+                const results = await this.syncManager.syncFiles(
+                    localFiles,
+                    remoteFiles,
+                    (progress) => {
+                        const item = document.createElement('div');
+                        item.className = `sync-item ${progress.type}`;
+                        
+                        if (progress.type === 'uploading') {
+                            item.textContent = `⬆️ Завантаження на сервер: ${progress.file}`;
+                        } else {
+                            item.textContent = `⬇️ Завантаження локально: ${progress.file}`;
+                        }
+                        
+                        resultsDiv.appendChild(item);
+                        
+                        setTimeout(() => {
+                            item.classList.remove('uploading', 'downloading');
+                            item.classList.add('completed');
+                        }, 500);
+                    }
+                );
+
+                await this.loadFiles();
+
+                btn.disabled = false;
+                btn.textContent = '🔄 Запустити синхронізацію';
+
+                const successCount = results.filter(r => r.success).length;
+                const failCount = results.filter(r => !r.success).length;
+                
+                if (failCount > 0) {
+                    this.showNotification(`Синхронізовано: ${successCount}, Помилок: ${failCount}`, 'error');
+                } else {
+                    this.showNotification(`✓ Успішно синхронізовано ${successCount} файл(ів)!`, 'success');
+                }
+
+                setTimeout(() => {
+                    this.showSyncModal();
+                }, 1500);
+            }
+
+            async fetchRemoteFiles() {
+                try {
+                    const response = await fetch(`${API_URL}/files?userId=${this.currentUser.username}`);
+                    const data = await response.json();
+                    return data.success ? data.files : [];
+                } catch (error) {
+                    console.error('Помилка отримання файлів:', error);
+                    return [];
+                }
             }
 
             updateFileInputDisplay(files) {
@@ -1278,26 +1531,21 @@
                         }
 
                         const fileData = await this.readFile(file);
-                        
-                        const response = await fetch(`${API_URL}/files`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                userId: this.currentUser.username,
-                                name: file.name,
-                                type: file.type || this.getFileType(file.name),
-                                size: file.size,
-                                uploader: uploaderName,
-                                data: fileData
-                            })
-                        });
+                        const fileObj = {
+                            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                            userId: this.currentUser.username,
+                            name: file.name,
+                            type: file.type || this.getFileType(file.name),
+                            size: file.size,
+                            uploader: uploaderName,
+                            data: fileData,
+                            createdDate: new Date().toISOString(),
+                            syncStatus: 'local',
+                            lastModified: new Date().toISOString()
+                        };
 
-                        if (response.ok) {
-                            successCount++;
-                        } else {
-                            const error = await response.json();
-                            this.showNotification(`Помилка: ${error.error}`, 'error');
-                        }
+                        LocalStorage.addFile(this.currentUser.username, fileObj);
+                        successCount++;
                     } catch (error) {
                         console.error('Помилка завантаження:', error);
                         this.showNotification(`Помилка завантаження ${file.name}`, 'error');
@@ -1310,7 +1558,7 @@
                 uploadBtn.innerHTML = '<span>🚀</span> Завантажити';
 
                 if (successCount > 0) {
-                    this.showNotification(`Успішно завантажено ${successCount} файл(ів)!`, 'success');
+                    this.showNotification(`Успішно завантажено ${successCount} файл(ів) локально! Використайте синхронізацію для завантаження на сервер.`, 'success');
                 }
             }
 
@@ -1363,17 +1611,48 @@
                 `;
 
                 try {
-                    const response = await fetch(`${API_URL}/files?userId=${this.currentUser.username}`);
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        this.core.files = data.files.map(file => ({
-                            ...file,
-                            createdDate: new Date(file.createdDate),
-                            modifiedDate: new Date(file.modifiedDate)
-                        }));
-                        this.renderFiles();
-                    }
+                    const localFiles = LocalStorage.getFiles(this.currentUser.username);
+                    const remoteFiles = await this.fetchRemoteFiles();
+
+                    const allFilesMap = new Map();
+
+                    // Додаємо локальні файли
+                    localFiles.forEach(f => {
+                        allFilesMap.set(f.id, { 
+                            ...f, 
+                            source: 'local',
+                            syncStatus: f.syncStatus || 'local'
+                        });
+                    });
+
+                    // Порівнюємо з віддаленими файлами
+                    remoteFiles.forEach(f => {
+                        const existing = allFilesMap.get(f.id);
+                        if (!existing) {
+                            // Файл є тільки на сервері
+                            allFilesMap.set(f.id, { 
+                                ...f, 
+                                source: 'remote', 
+                                syncStatus: 'remote',
+                                data: null // Дані не завантажені
+                            });
+                        } else {
+                            // Файл є і локально, і на сервері
+                            allFilesMap.set(f.id, { 
+                                ...existing, 
+                                source: 'both', 
+                                syncStatus: 'synced'
+                            });
+                        }
+                    });
+
+                    this.core.files = Array.from(allFilesMap.values()).map(file => ({
+                        ...file,
+                        createdDate: new Date(file.createdDate),
+                        modifiedDate: file.modifiedDate ? new Date(file.modifiedDate) : new Date(file.createdDate)
+                    }));
+
+                    this.renderFiles();
                 } catch (error) {
                     console.error('Помилка завантаження файлів:', error);
                     this.showNotification('Помилка завантаження файлів', 'error');
@@ -1408,6 +1687,7 @@
                                 <th>Тип файлу</th>
                                 <th>Розмір</th>
                                 <th>Завантажив</th>
+                                <th>Статус синхронізації</th>
                                 <th>Дата створення</th>
                                 <th>Дії</th>
                             </tr>
@@ -1420,6 +1700,8 @@
             }
 
             generateFileRow(file) {
+                const syncBadge = this.getSyncBadge(file.syncStatus || 'local');
+                
                 return `
                     <tr>
                         <td>
@@ -1435,6 +1717,7 @@
                             <span class="file-size">${this.formatFileSize(file.size)}</span>
                         </td>
                         <td>${this.escapeHtml(file.uploader)}</td>
+                        <td>${syncBadge}</td>
                         <td>
                             <span class="file-date">${this.formatDate(file.createdDate)}</span>
                         </td>
@@ -1455,35 +1738,35 @@
                 `;
             }
 
-            runTests() {
-                const results = this.tests.runAllTests();
-                const testResultsContainer = document.getElementById('testResults');
-                
-                let html = '';
-                results.forEach(result => {
-                    html += `
-                        <div class="test-result ${result.passed ? 'passed' : 'failed'}">
-                            <strong>${result.passed ? '✅' : '❌'} ${result.name}</strong><br>
-                            ${result.message}<br>
-                            <small>${result.timestamp}</small>
-                        </div>
-                    `;
-                });
-                
-                testResultsContainer.innerHTML = html;
-                
-                const passedCount = results.filter(r => r.passed).length;
-                const totalCount = results.length;
-                
-                this.showNotification(
-                    `Тести завершено: ${passedCount}/${totalCount} пройдено`, 
-                    passedCount === totalCount ? 'success' : 'error'
-                );
+            getSyncBadge(status) {
+                const badges = {
+                    'synced': '<span class="sync-badge synced">✓ Синхронізовано</span>',
+                    'local': '<span class="sync-badge local">📱 Локально</span>',
+                    'remote': '<span class="sync-badge remote">☁️ Віддалено</span>'
+                };
+                return badges[status] || badges['local'];
             }
 
-            previewFile(fileId) {
+            async previewFile(fileId) {
                 const file = this.core.files.find(f => f.id === fileId);
                 if (!file) return;
+
+                // Якщо файл віддалений і не має даних, завантажуємо їх
+                if (file.syncStatus === 'remote' && !file.data) {
+                    try {
+                        const response = await fetch(`${API_URL}/files/${fileId}?userId=${this.currentUser.username}`);
+                        const result = await response.json();
+                        if (result.success) {
+                            file.data = result.file.data;
+                        } else {
+                            this.showNotification('Помилка завантаження файлу для перегляду', 'error');
+                            return;
+                        }
+                    } catch (error) {
+                        this.showNotification('Помилка завантаження файлу', 'error');
+                        return;
+                    }
+                }
 
                 const modal = document.createElement('div');
                 modal.style.cssText = `
@@ -1526,6 +1809,7 @@
                         <p><strong>Тип:</strong> ${file.type}</p>
                         <p><strong>Розмір:</strong> ${this.formatFileSize(file.size)}</p>
                         <p><strong>Завантажив:</strong> ${this.escapeHtml(file.uploader)}</p>
+                        <p><strong>Статус:</strong> ${this.getSyncBadge(file.syncStatus || 'local')}</p>
                     </div>
                 `;
 
@@ -1540,9 +1824,26 @@
                 });
             }
 
-            downloadFile(fileId) {
+            async downloadFile(fileId) {
                 const file = this.core.files.find(f => f.id === fileId);
                 if (!file) return;
+
+                // Якщо файл віддалений і не має даних, завантажуємо їх
+                if (file.syncStatus === 'remote' && !file.data) {
+                    try {
+                        const response = await fetch(`${API_URL}/files/${fileId}?userId=${this.currentUser.username}`);
+                        const result = await response.json();
+                        if (result.success) {
+                            file.data = result.file.data;
+                        } else {
+                            this.showNotification('Помилка завантаження файлу', 'error');
+                            return;
+                        }
+                    } catch (error) {
+                        this.showNotification('Помилка завантаження файлу', 'error');
+                        return;
+                    }
+                }
 
                 let blob;
                 if (file.type.startsWith('image/')) {
@@ -1569,16 +1870,22 @@
 
                 if (confirm(`Ви впевнені, що хочете видалити файл "${file.name}"?`)) {
                     try {
-                        const response = await fetch(`${API_URL}/files/${fileId}?userId=${this.currentUser.username}`, {
-                            method: 'DELETE'
-                        });
+                        // Видаляємо локально
+                        LocalStorage.deleteFile(this.currentUser.username, fileId);
 
-                        if (response.ok) {
-                            await this.loadFiles();
-                            this.showNotification(`Файл "${file.name}" видалено!`, 'success');
-                        } else {
-                            this.showNotification('Помилка видалення файлу', 'error');
+                        // Якщо файл синхронізований або віддалений, видаляємо з сервера
+                        if (file.syncStatus === 'synced' || file.syncStatus === 'remote') {
+                            const response = await fetch(`${API_URL}/files/${fileId}?userId=${this.currentUser.username}`, {
+                                method: 'DELETE'
+                            });
+
+                            if (!response.ok) {
+                                this.showNotification('Помилка видалення з сервера', 'error');
+                            }
                         }
+
+                        await this.loadFiles();
+                        this.showNotification(`Файл "${file.name}" видалено!`, 'success');
                     } catch (error) {
                         console.error('Помилка видалення:', error);
                         this.showNotification('Помилка видалення файлу', 'error');
@@ -1620,6 +1927,7 @@
             }
 
             escapeHtml(unsafe) {
+                if (!unsafe) return '';
                 return unsafe
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
